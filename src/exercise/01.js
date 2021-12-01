@@ -2,20 +2,34 @@
 // http://localhost:3000/isolated/exercise/01.js
 
 import * as React from 'react'
-import {PokemonDataView, fetchPokemon, PokemonErrorBoundary} from '../pokemon'
+import {PokemonDataView, fetchPokemon, PokemonErrorBoundary, } from '../pokemon'
 
+function createResource(promise) {
+  let status = 'pending'
+  let result = promise.then(
+    resolved => {
+      status = 'success'
+      result = resolved
+    },
+    rejected => {
+      status = 'error'
+      result = rejected
+    },
+  )
+  return {
+    read() {
+      if (status === 'pending') throw result
+      if (status === 'error') throw result
+      if (status === 'success') return result
+      throw new Error('This should be impossible')
+    },
+  }
+}
 
-let pokemon;
-let error;
-let pokemonPromise = fetchPokemon('pikach').then(value=>pokemon = value, err=>error = err)
+let resource = createResource(fetchPokemon('pikachu'))
 
 function PokemonInfo() {
-  if(!pokemon){
-    throw pokemonPromise
-  }
-  if(error){
-    throw error
-  }
+ const pokemon = resource.read()
 
   return (
     <div>
