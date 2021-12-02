@@ -52,17 +52,22 @@ function App() {
     <div className="pokemon-info-app">
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
+      <React.Suspense fallback={
+       <div className="pokemon-info">
+         <PokemonInfoFallback name={pokemonName}/>
+         </div>}>
       <div className="pokemon-info">
         {currentResource ? (
           <PokemonErrorBoundary onReset={handleReset} resetKeys={[currentResource]}>
-            <React.Suspense fallback={<PokemonInfoFallback name={pokemonName}/>}>
+            
           <PokemonInfo pokemonResource={currentResource} />
-          </React.Suspense>
+          
           </PokemonErrorBoundary>
         ) : (
           'Submit a pokemon'
         )}
       </div>
+      </React.Suspense>
     </div>
   )
 }
