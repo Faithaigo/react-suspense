@@ -28,7 +28,7 @@ const pokemon = pokemonResource.read()
 function App() {
   const [pokemonName, setPokemonName] = React.useState('')
   const [currentResource, setCurrentResource] = React.useState(null)
-  // 🐨 add a useState here to keep track of the current pokemonResource
+  
   React.useEffect(()=>{
     if(!pokemonName){
       setCurrentResource(null)
