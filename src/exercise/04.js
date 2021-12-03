@@ -39,11 +39,18 @@ function getPokemonResource(pokemonName){
   return resource
 }
 
+const pokemonResourceContext = React.createContext(getPokemonResource)
+
+function useResourceContext(){
+  return React.useContext(pokemonResourceContext)
+}
+
 
 function App() {
   const [pokemonName, setPokemonName] = React.useState('')
   const [startTransition, isPending] = React.useTransition(SUSPENSE_CONFIG)
   const [pokemonResource, setPokemonResource] = React.useState(null)
+  const getPokemonResource = useResourceContext();
 
   React.useEffect(() => {
     if (!pokemonName) {
