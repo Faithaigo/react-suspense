@@ -35,18 +35,37 @@ function createPokemonResource(pokemonName) {
 const PokemonResourceContext = React.createContext()
 
 
-function PokemonCacheProvider({children}) {
+function PokemonCacheProvider({cacheTime,children}) {
   const cache = React.useRef({})
+  const expirations = React.useRef({})
+
+  React.useEffect(()=>{
+    if(cacheTime > 5000){
+      cache.current = null
+    }
+  },[cacheTime])
 
   const getPokemonResource = React.useCallback(pokemonName => {
-  
-    let resource = cache.current[pokemonName]
+   let lowerName = pokemonName.toLowerCase()
+    let resource = cache.current[lowerName]
     if (!resource) {
-      resource = createPokemonResource(pokemonName)
-      cache.current[pokemonName] = resource
+      resource = createPokemonResource(lowerName)
+      cache.current[lowerName] = resource
     }
+    expirations.current[lowerName] = Date.now() + cacheTime
     return resource
-  }, [])
+  }, [cacheTime])
+
+  React.useEffect(()=>{
+    const interval = setInterval(()=>{
+      for (const [name,time] of Object.entries(expirations.current)) {
+        if(time< Date.now()){
+          delete cache.current[name]
+        }
+      }
+    },1000)
+    return () => clearInterval(interval)
+  },[])
 
   return (
     <PokemonResourceContext.Provider value={getPokemonResource}>
@@ -78,7 +97,7 @@ function App() {
     startTransition(() => {
       setPokemonResource(getPokemonResource(pokemonName))
     })
-  }, [pokemonName, startTransition])
+  }, [pokemonName, startTransition,getPokemonResource])
 
   function handleSubmit(newPokemonName) {
     setPokemonName(newPokemonName)
@@ -113,7 +132,7 @@ function App() {
 }
 function AppWithProvider() {
   return (
-    <PokemonCacheProvider>
+    <PokemonCacheProvider cacheTime={5000}>
       <App />
     </PokemonCacheProvider>
   )
