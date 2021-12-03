@@ -28,23 +28,41 @@ const SUSPENSE_CONFIG = {
   busyDelayMs: 300,
   busyMinDurationMs: 700,
 }
-
-const pokemonResourceCache = {}
-function getPokemonResource(pokemonName){
-  let resource = pokemonResourceCache[pokemonName];
-  if(!resource){  
-    resource = createResource(fetchPokemon(pokemonName))
-    pokemonResourceCache[pokemonName] = resource;
-  }
-  return resource
+function createPokemonResource(pokemonName) {
+  return createResource(fetchPokemon(pokemonName))
 }
 
-const pokemonResourceContext = React.createContext(getPokemonResource)
+const PokemonResourceContext = React.createContext()
+
+
+function PokemonCacheProvider({children}) {
+  const cache = React.useRef({})
+
+  const getPokemonResource = React.useCallback(pokemonName => {
+  
+    let resource = cache.current[pokemonName]
+    if (!resource) {
+      resource = createPokemonResource(pokemonName)
+      cache.current[pokemonName] = resource
+    }
+    return resource
+  }, [])
+
+  return (
+    <PokemonResourceContext.Provider value={getPokemonResource}>
+      {children}
+    </PokemonResourceContext.Provider>
+  )
+}
+
 
 function useResourceContext(){
-  return React.useContext(pokemonResourceContext)
+  const context =  React.useContext(PokemonResourceContext)
+  if(!context){
+    throw new Error('useResourceContext should be within PokemonCacheProvider')
+  }
+  return context
 }
-
 
 function App() {
   const [pokemonName, setPokemonName] = React.useState('')
@@ -93,5 +111,12 @@ function App() {
     </div>
   )
 }
+function AppWithProvider() {
+  return (
+    <PokemonCacheProvider>
+      <App />
+    </PokemonCacheProvider>
+  )
+}
 
-export default App
+export default AppWithProvider
